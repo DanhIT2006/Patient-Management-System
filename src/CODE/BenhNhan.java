@@ -116,9 +116,44 @@ public class BenhNhan extends JFrame {
         loginButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         loginButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
 
+// Thêm sự kiện click để hiển thị menu lựa chọn
         loginButton.addActionListener(e -> {
-            dispose(); // Close the current BenhNhan frame
-            new LoginPage(); // Open a new LoginPage
+            JPopupMenu popupMenu = new JPopupMenu();
+
+            // Tạo các mục menu
+            JMenuItem patientItem = new JMenuItem("Bệnh nhân");
+            JMenuItem doctorItem = new JMenuItem("Bác sĩ");
+            JMenuItem otherItem = new JMenuItem("Bộ phận khác");
+
+            // Thiết lập font và màu cho menu
+            Font menuFont_DN = new Font("Segoe UI", Font.PLAIN, 14);
+            patientItem.setFont(menuFont);
+            doctorItem.setFont(menuFont);
+            otherItem.setFont(menuFont);
+
+            // Xử lý sự kiện cho từng mục
+            patientItem.addActionListener(evt -> {
+                dispose();
+                new LoginPage(); // Giả sử LoginPage mặc định cho bệnh nhân
+            });
+
+            doctorItem.addActionListener(evt -> {
+                dispose();
+                new BacSi(); // Giả sử lớp đăng nhập cho bác sĩ
+            });
+
+            otherItem.addActionListener(evt -> {
+                dispose();
+                new BoPhanKhac(); // Giả sử lớp đăng nhập cho bộ phận khác
+            });
+
+            // Thêm các mục vào popup menu
+            popupMenu.add(patientItem);
+            popupMenu.add(doctorItem);
+            popupMenu.add(otherItem);
+
+            // Hiển thị popup menu dưới nút đăng nhập
+            popupMenu.show(loginButton, 0, loginButton.getHeight());
         });
 
         accountPanel.add(loginButton);
