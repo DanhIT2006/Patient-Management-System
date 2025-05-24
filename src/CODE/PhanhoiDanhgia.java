@@ -29,7 +29,7 @@ public class PhanhoiDanhgia {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10,0 , 10,0 );
 
-        maBenhNhan = UserSession.maBenhNhan;
+        maBenhNhan = UserSession.userId;
         if (maBenhNhan == null || maBenhNhan.trim().isEmpty()) {
             JLabel placeholderLabel = new JLabel("Vui lòng đăng nhập để gửi phản hồi.", JLabel.CENTER);
             placeholderLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));

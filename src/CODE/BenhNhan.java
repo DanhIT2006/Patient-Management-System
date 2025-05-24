@@ -116,44 +116,9 @@ public class BenhNhan extends JFrame {
         loginButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         loginButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
 
-// Thêm sự kiện click để hiển thị menu lựa chọn
         loginButton.addActionListener(e -> {
-            JPopupMenu popupMenu = new JPopupMenu();
-
-            // Tạo các mục menu
-            JMenuItem patientItem = new JMenuItem("Bệnh nhân");
-            JMenuItem doctorItem = new JMenuItem("Bác sĩ");
-            JMenuItem otherItem = new JMenuItem("Bộ phận khác");
-
-            // Thiết lập font và màu cho menu
-            Font menuFont_DN = new Font("Segoe UI", Font.PLAIN, 14);
-            patientItem.setFont(menuFont);
-            doctorItem.setFont(menuFont);
-            otherItem.setFont(menuFont);
-
-            // Xử lý sự kiện cho từng mục
-            patientItem.addActionListener(evt -> {
-                dispose();
-                new LoginPage(); // Giả sử LoginPage mặc định cho bệnh nhân
-            });
-
-            doctorItem.addActionListener(evt -> {
-                dispose();
-                new BacSi(); // Giả sử lớp đăng nhập cho bác sĩ
-            });
-
-            otherItem.addActionListener(evt -> {
-                dispose();
-                new BoPhanKhac(); // Giả sử lớp đăng nhập cho bộ phận khác
-            });
-
-            // Thêm các mục vào popup menu
-            popupMenu.add(patientItem);
-            popupMenu.add(doctorItem);
-            popupMenu.add(otherItem);
-
-            // Hiển thị popup menu dưới nút đăng nhập
-            popupMenu.show(loginButton, 0, loginButton.getHeight());
+            dispose(); // Close the current BenhNhan frame
+            new Login(); // Open a new LoginPage
         });
 
         accountPanel.add(loginButton);
@@ -312,7 +277,7 @@ public class BenhNhan extends JFrame {
         patientPanel.add(buttonPanel, BorderLayout.SOUTH);
 
         // Load data into the fields
-        if (isLoggedIn && UserSession.maBenhNhan != null && !UserSession.maBenhNhan.trim().isEmpty()) {
+        if (isLoggedIn && UserSession.userId != null && !UserSession.userId.trim().isEmpty()) {
             loadPatientData(tfMaBN, tfHo, cbGioiTinh, tfNgaySinh, tfCMND, tfSDT, tfNgheNghiep, cbDoiTuong, taDiaChi, tfNgayKham, tfMaBS, tfBacSi, taYeuCauKham);
         }
 
@@ -340,12 +305,12 @@ public class BenhNhan extends JFrame {
             tableModel.setRowCount(0); // Clear existing rows
             try (Connection conn = ConnectionDatabase.getConnection()) {
                 // Debug: Check UserSession.maBenhNhan
-                System.out.println("UserSession.maBenhNhan at loadAppointments: " + UserSession.maBenhNhan);
+                System.out.println("UserSession.maBenhNhan at loadAppointments: " + UserSession.userId);
 
                 // Load patient info
                 String query1 = "SELECT * FROM benhnhan WHERE mabenhnhan = ?";
                 PreparedStatement stmt1 = conn.prepareStatement(query1);
-                stmt1.setString(1, UserSession.maBenhNhan != null ? UserSession.maBenhNhan.trim() : "");
+                stmt1.setString(1, UserSession.userId != null ? UserSession.userId.trim() : "");
                 ResultSet rs1 = stmt1.executeQuery();
 
                 infoPanel.removeAll(); // Clear existing labels
@@ -361,7 +326,7 @@ public class BenhNhan extends JFrame {
                     infoPanel.add(new JLabel("Ngày sinh: " + ngaySinh));
                     infoPanel.add(new JLabel("SĐT: " + sdt));
                     infoPanel.add(new JLabel("Địa chỉ: " + diaChi));
-                    infoPanel.add(new JLabel("Mã bệnh nhân: " + UserSession.maBenhNhan));
+                    infoPanel.add(new JLabel("Mã bệnh nhân: " + UserSession.userId));
                     infoPanel.add(new JLabel(""));
                     infoPanel.add(new JLabel(""));
                 } else {
@@ -378,14 +343,14 @@ public class BenhNhan extends JFrame {
                 // Load appointments
                 String query2 = "SELECT ngay, ten_kham, bac_si, phong, toa, trang_thai FROM lichhen WHERE ma_benh_nhan = ?";
                 PreparedStatement stmt2 = conn.prepareStatement(query2);
-                stmt2.setString(1, UserSession.maBenhNhan != null ? UserSession.maBenhNhan.trim() : "");
-                System.out.println("Querying appointments for ma_benh_nhan: " + UserSession.maBenhNhan);
+                stmt2.setString(1, UserSession.userId != null ? UserSession.userId.trim() : "");
+                System.out.println("Querying appointments for ma_benh_nhan: " + UserSession.userId);
                 ResultSet rs2 = stmt2.executeQuery();
 
                 boolean hasAppointments = false;
                 while (rs2.next()) {
                     hasAppointments = true;
-                    System.out.println("Found appointment for " + UserSession.maBenhNhan);
+                    System.out.println("Found appointment for " + UserSession.userId);
                     String ngay = rs2.getDate("ngay").toString();
                     String tenKham = rs2.getString("ten_kham");
                     String bacSi = rs2.getString("bac_si");
@@ -556,7 +521,7 @@ public class BenhNhan extends JFrame {
         });
 
         JPanel feedbackPanel;
-        if (isLoggedIn && UserSession.maBenhNhan != null && !UserSession.maBenhNhan.trim().isEmpty()) {
+        if (isLoggedIn && UserSession.userId != null && !UserSession.userId.trim().isEmpty()) {
             PhanhoiDanhgia feedbackForm = new PhanhoiDanhgia();
             feedbackPanel = feedbackForm.createFeedbackPanel();
         } else {
@@ -586,10 +551,10 @@ public class BenhNhan extends JFrame {
         patientMenu.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (!isLoggedIn || UserSession.maBenhNhan == null) {
+                if (!isLoggedIn || UserSession.userId == null) {
                     JOptionPane.showMessageDialog(null, "Bạn chưa đăng nhập! Vui lòng đăng nhập lại.", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
                     dispose();
-                    new LoginPage();
+                    new Login();
                 } else {
                     cardLayout.show(mainPanel, "patient");
                 }
@@ -599,10 +564,10 @@ public class BenhNhan extends JFrame {
         appointmentMenu.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (!isLoggedIn || UserSession.maBenhNhan == null) {
+                if (!isLoggedIn || UserSession.userId == null) {
                     JOptionPane.showMessageDialog(null, "Bạn chưa đăng nhập! Vui lòng đăng nhập lại.", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
                     dispose();
-                    new LoginPage();
+                    new Login();
                 } else {
                     cardLayout.show(mainPanel, "appointment");
                 }
@@ -612,10 +577,10 @@ public class BenhNhan extends JFrame {
         recordMenu.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (!isLoggedIn || UserSession.maBenhNhan == null) {
+                if (!isLoggedIn || UserSession.userId == null) {
                     JOptionPane.showMessageDialog(null, "Bạn chưa đăng nhập! Vui lòng đăng nhập lại.", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
                     dispose();
-                    new LoginPage();
+                    new Login();
                 } else {
                     cardLayout.show(mainPanel, "record");
                 }
@@ -632,10 +597,10 @@ public class BenhNhan extends JFrame {
         commentMenu.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (!isLoggedIn || UserSession.maBenhNhan == null) {
+                if (!isLoggedIn || UserSession.userId == null) {
                     JOptionPane.showMessageDialog(null, "Bạn chưa đăng nhập! Vui lòng đăng nhập lại.", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
                     dispose();
-                    new LoginPage();
+                    new Login();
                 } else {
                     cardLayout.show(mainPanel, "feedback");
                 }
@@ -647,7 +612,7 @@ public class BenhNhan extends JFrame {
         setVisible(true);
 
         // Debug: Check UserSession.maBenhNhan at initialization
-        System.out.println("UserSession.maBenhNhan at initialization: " + UserSession.maBenhNhan);
+        System.out.println("UserSession.maBenhNhan at initialization: " + UserSession.userId);
     }
 
     private JMenu createMenu(String title, Font font, Color normalBg, Color hoverBg) {
@@ -713,11 +678,17 @@ public class BenhNhan extends JFrame {
                                  JTextField tfNgaySinh, JTextField tfCMND, JTextField tfSDT,
                                  JTextField tfNgheNghiep, JComboBox<String> cbDoiTuong, JTextArea taDiaChi,
                                  JTextField tfNgayKham, JTextField tfMaBS, JTextField tfBacSi, JTextArea taYeuCauKham) {
+        // Kiểm tra vai trò và userId
+        if (UserSession.userId == null || !UserSession.role.equals("benhnhan")) {
+            return;
+        }
+
         try (Connection conn = ConnectionDatabase.getConnection()) {
+            // Truy vấn thông tin bệnh nhân
             String sqlBenhNhan = "SELECT mabenhnhan, hoten, gioitinh, ngaysinh, sdt, diachi, cccd, ngayvaovien, ngayravien, nghe_nghiep " +
                     "FROM benhnhan WHERE mabenhnhan = ?";
             PreparedStatement stmtBenhNhan = conn.prepareStatement(sqlBenhNhan);
-            stmtBenhNhan.setString(1, UserSession.maBenhNhan != null ? UserSession.maBenhNhan.trim() : "");
+            stmtBenhNhan.setString(1, UserSession.userId.trim()); // Sử dụng userId thay vì maBenhNhan
             ResultSet rsBenhNhan = stmtBenhNhan.executeQuery();
 
             if (rsBenhNhan.next()) {
@@ -732,18 +703,19 @@ public class BenhNhan extends JFrame {
                 tfNgayKham.setText(rsBenhNhan.getDate("ngayvaovien") != null ? rsBenhNhan.getDate("ngayvaovien").toString() : "");
             } else {
                 JOptionPane.showMessageDialog(null, "Không tìm thấy thông tin bệnh nhân.", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
-                return; // Exit if patient not found
+                return; // Thoát nếu không tìm thấy bệnh nhân
             }
 
+            // Truy vấn thông tin phiếu khám
             String sqlPhieuKham = "SELECT ma_bac_si, bac_si_phu_trach, yeu_cau_kham, doi_tuong " +
                     "FROM phieukham WHERE ma_benh_nhan = ?";
             PreparedStatement stmtPhieuKham = conn.prepareStatement(sqlPhieuKham);
-            stmtPhieuKham.setString(1, UserSession.maBenhNhan != null ? UserSession.maBenhNhan.trim() : "");
+            stmtPhieuKham.setString(1, UserSession.userId.trim()); // Sử dụng userId thay vì maBenhNhan
             ResultSet rsPhieuKham = stmtPhieuKham.executeQuery();
 
             if (rsPhieuKham.next()) {
                 tfMaBS.setText(rsPhieuKham.getString("ma_bac_si") != null ? rsPhieuKham.getString("ma_bac_si") : "");
-                tfBacSi.setText(rsPhieuKham.getString("phu_trach") != null ? rsPhieuKham.getString("bac_si_phu_trach") : "");
+                tfBacSi.setText(rsPhieuKham.getString("bac_si_phu_trach") != null ? rsPhieuKham.getString("bac_si_phu_trach") : "");
                 taYeuCauKham.setText(rsPhieuKham.getString("yeu_cau_kham") != null ? rsPhieuKham.getString("yeu_cau_kham") : "");
                 cbDoiTuong.setSelectedItem(rsPhieuKham.getString("doi_tuong") != null ? rsPhieuKham.getString("doi_tuong") : "Bình thường");
             } else {
@@ -759,12 +731,17 @@ public class BenhNhan extends JFrame {
     }
 
     private void loadMedicalRecordData() {
+        // Kiểm tra vai trò và userId
+        if (UserSession.userId == null || !UserSession.role.equals("benhnhan")) {
+            return;
+        }
+
         try (Connection conn = ConnectionDatabase.getConnection()) {
-            // Lấy thông tin từ bảng benh_nhan
+            // Lấy thông tin từ bảng benhnhan
             String sqlBenhNhan = "SELECT hoten, gioitinh, ngaysinh, sdt, diachi, mabenhnhan, cccd, ngayvaovien, ngayravien " +
                     "FROM benhnhan WHERE mabenhnhan = ?";
             PreparedStatement stmtBenhNhan = conn.prepareStatement(sqlBenhNhan);
-            stmtBenhNhan.setString(1, UserSession.maBenhNhan);
+            stmtBenhNhan.setString(1, UserSession.userId.trim()); // Sử dụng userId thay vì maBenhNhan
             ResultSet rsBenhNhan = stmtBenhNhan.executeQuery();
             if (rsBenhNhan.next()) {
                 lblHoTen.setText("Họ và tên: " + (rsBenhNhan.getString("hoten") != null ? rsBenhNhan.getString("hoten") : ""));
@@ -788,11 +765,11 @@ public class BenhNhan extends JFrame {
                 lblNgayRaVien.setText("Ra viện ngày: ");
             }
 
-            // Lấy thông tin từ bảng hosobenhan
+            // Lấy thông tin từ bảng ho_so_benh_an
             String sqlHoso = "SELECT ly_do_vao_vien, tom_tat_benh_ly, tien_su_benh, ket_qua_xet_nghiem, noi_khoa, phau_thuat, tinh_trang_ra_vien " +
                     "FROM ho_so_benh_an WHERE ma_benh_nhan = ?";
             PreparedStatement stmtHoso = conn.prepareStatement(sqlHoso);
-            stmtHoso.setString(1, UserSession.maBenhNhan);
+            stmtHoso.setString(1, UserSession.userId.trim()); // Sử dụng userId thay vì maBenhNhan
             ResultSet rsHoso = stmtHoso.executeQuery();
             if (rsHoso.next()) {
                 lblLyDoVaoVien.setText("Lý do vào viện: " + (rsHoso.getString("ly_do_vao_vien") != null ? rsHoso.getString("ly_do_vao_vien") : ""));
@@ -818,6 +795,12 @@ public class BenhNhan extends JFrame {
     }
 
     private void generateAndDownloadWordDocument() {
+        // Kiểm tra vai trò và userId
+        if (UserSession.userId == null || !UserSession.role.equals("benhnhan")) {
+
+            return;
+        }
+
         try {
             XWPFDocument document = new XWPFDocument();
 
@@ -844,7 +827,6 @@ public class BenhNhan extends JFrame {
             soYTeRun.setFontSize(12);
             soYTeRun.setBold(true);
             soYTeRun.setText("Sở y tế: Đà Nẵng");
-
 
             // Dòng trống
             XWPFParagraph emptyLine = document.createParagraph();
@@ -882,7 +864,6 @@ public class BenhNhan extends JFrame {
             xuat_info_bn.addBreak();
             xuat_info_bn.setText(lblNgayVaoVien.getText() + " ".repeat(40) + lblNgayRaVien.getText());
             xuat_info_bn.addBreak();
-
 
             XWPFParagraph tieudetomtat = document.createParagraph();
             XWPFRun xuat_title_tt = tieudetomtat.createRun();
@@ -953,7 +934,7 @@ public class BenhNhan extends JFrame {
             signatureRun.addBreak();
             signatureRun.setText("(Ký, đóng dấu)");
 
-            String filePath = "HosoBenhAn_" + UserSession.maBenhNhan + "_" + System.currentTimeMillis() + ".docx";
+            String filePath = "HosoBenhAn_" + UserSession.userId + "_" + System.currentTimeMillis() + ".docx"; // Sử dụng userId thay vì maBenhNhan
             try (FileOutputStream out = new FileOutputStream(filePath)) {
                 document.write(out);
                 JOptionPane.showMessageDialog(null, "Tải về thành công! File: " + filePath);
@@ -1026,6 +1007,11 @@ public class BenhNhan extends JFrame {
 
     // thông tin tài khoản
     private JPanel createAccountPanel() {
+        // Kiểm tra vai trò và userId
+        if (UserSession.userId == null || !UserSession.role.equals("benhnhan")) {
+            return new JPanel(); // Trả về panel rỗng nếu không hợp lệ
+        }
+
         JPanel accountPanel = new JPanel(new BorderLayout());
         accountPanel.setBackground(Color.WHITE);
         accountPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
@@ -1106,7 +1092,7 @@ public class BenhNhan extends JFrame {
                     "FROM benhnhan bn JOIN tai_khoan tk ON bn.sdt = tk.sdt " +
                     "WHERE bn.mabenhnhan = ?";
             PreparedStatement stmt = conn.prepareStatement(sql);
-            stmt.setString(1, UserSession.maBenhNhan != null ? UserSession.maBenhNhan.trim() : "");
+            stmt.setString(1, UserSession.userId.trim()); // Sử dụng userId thay vì maBenhNhan
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 lblHoTen.setText("Họ và tên: " + (rs.getString("hoten") != null ? rs.getString("hoten") : ""));
@@ -1146,7 +1132,7 @@ public class BenhNhan extends JFrame {
                 // Verify old password
                 String sqlVerify = "SELECT mat_khau FROM tai_khoan WHERE sdt = (SELECT sdt FROM benhnhan WHERE mabenhnhan = ?)";
                 PreparedStatement stmtVerify = conn.prepareStatement(sqlVerify);
-                stmtVerify.setString(1, UserSession.maBenhNhan);
+                stmtVerify.setString(1, UserSession.userId.trim()); // Sử dụng userId thay vì maBenhNhan
                 ResultSet rsVerify = stmtVerify.executeQuery();
                 if (rsVerify.next()) {
                     String storedPassword = rsVerify.getString("mat_khau");
@@ -1163,7 +1149,7 @@ public class BenhNhan extends JFrame {
                 String sqlUpdate = "UPDATE tai_khoan SET mat_khau = ? WHERE sdt = (SELECT sdt FROM benhnhan WHERE mabenhnhan = ?)";
                 PreparedStatement stmtUpdate = conn.prepareStatement(sqlUpdate);
                 stmtUpdate.setString(1, newPassword);
-                stmtUpdate.setString(2, UserSession.maBenhNhan);
+                stmtUpdate.setString(2, UserSession.userId.trim()); // Sử dụng userId thay vì maBenhNhan
                 int rowsAffected = stmtUpdate.executeUpdate();
                 if (rowsAffected > 0) {
                     JOptionPane.showMessageDialog(null, "Đổi mật khẩu thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
