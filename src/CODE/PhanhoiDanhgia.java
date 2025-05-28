@@ -53,7 +53,9 @@ public class PhanhoiDanhgia {
 
         ButtonGroup satisfactionGroup = new ButtonGroup();
         JRadioButton yesRadio = new JRadioButton("Có");
+        yesRadio.setFocusPainted(false);
         JRadioButton noRadio = new JRadioButton("Không");
+        noRadio.setFocusPainted(false);
         satisfactionGroup.add(yesRadio);
         satisfactionGroup.add(noRadio);
         JPanel radioPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
@@ -136,6 +138,7 @@ public class PhanhoiDanhgia {
 
         submitButton = new JButton("Gửi phản hồi");
         submitButton.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        submitButton.setFocusPainted(false);
         submitButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {

@@ -49,7 +49,7 @@ public class RequestPasswordPage {
         emailField.setAlignmentX(Component.CENTER_ALIGNMENT);
         panel.add(emailField);
 
-        JButton sendButton = new JButton("Gửi mật khẩu");
+        JButton sendButton = new JButton("Gửi");
         sendButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         sendButton.addActionListener(e -> sendPassword());
         panel.add(Box.createRigidArea(new Dimension(0, 20)));
@@ -140,7 +140,7 @@ public class RequestPasswordPage {
                 // Mã đúng ➔ cập nhật mật khẩu
                 String newPassword = generateRandomPassword(8);
 
-                String updateQuery = "UPDATE taikhoan SET matkhau = ? WHERE sdt = ?";
+                String updateQuery = "UPDATE tai_khoan SET matkhau = ? WHERE sdt = ?";
                 try (PreparedStatement updatePs = ConnectionDatabase.getConnection().prepareStatement(updateQuery)) {
                     updatePs.setString(1, newPassword);
                     updatePs.setString(2, phone);

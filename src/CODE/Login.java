@@ -27,7 +27,7 @@ public class Login extends JFrame implements ActionListener  {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                ImageIcon background = new ImageIcon("D:\\JAVACODE\\DOANCOSO\\src\\anhnenlogin.jpg");
+                ImageIcon background = new ImageIcon("D:\\JAVACODE\\DOANCOSO\\src\\Imgs\\anhnenlogin.jpg");
                 g.drawImage(background.getImage(), 0, 0, getWidth(), getHeight(), this);
             }
         };
@@ -82,11 +82,11 @@ public class Login extends JFrame implements ActionListener  {
         glassPanel.add(Box.createRigidArea(new Dimension(0, 27)));
         glassPanel.add(loginButton);
 
-        JLabel forgotPasswordLabel = new JLabel("Quên mật khẩu?");
+        JLabel forgotPasswordLabel = new JLabel("");
         forgotPasswordLabel.setFont(new Font("Segoe UI", Font.PLAIN, 15));
         forgotPasswordLabel.setForeground(Color.DARK_GRAY);
         forgotPasswordLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        glassPanel.add(Box.createRigidArea(new Dimension(0, 25)));
+        glassPanel.add(Box.createRigidArea(new Dimension(0, 15)));
         glassPanel.add(forgotPasswordLabel);
 
         JButton requestPasswordButton = new JButton("Yêu cầu cấp mật khẩu?");
@@ -160,8 +160,6 @@ public class Login extends JFrame implements ActionListener  {
                         SwingUtilities.invokeLater(() -> new BenhNhan(true).setVisible(true));
                     } else if (role.equals("bacsi")) {
                         SwingUtilities.invokeLater(() -> new BacSi(true).setVisible(true));
-                    } else if (role.equals("bophankhac")) {
-                        SwingUtilities.invokeLater(() -> new BoPhanKhac(true).setVisible(true));
                     }
                 } else {
                     JOptionPane.showMessageDialog(frame, "Sai mật khẩu!", "Lỗi", JOptionPane.ERROR_MESSAGE);

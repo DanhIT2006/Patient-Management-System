@@ -9,7 +9,10 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
 import java.io.FileOutputStream;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -27,6 +30,9 @@ public class BenhNhan extends JFrame {
         initUI(); // gọi phần setup UI ở đây
     }
 
+    private CardLayout cardLayout;
+    private JPanel mainPanel;
+
     private Image[] bannerImages;
     private int currentBannerIndex = 0;
 
@@ -43,7 +49,7 @@ public class BenhNhan extends JFrame {
 
         setTitle("Patient Management System");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1500, 890);
+        setSize(1560, 890);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
@@ -60,9 +66,9 @@ public class BenhNhan extends JFrame {
         };
 
         bannerImages = new Image[]{
-                new ImageIcon(getClass().getResource("/anhnen1.jpg")).getImage(),
-                new ImageIcon(getClass().getResource("/anhnen2.jpg")).getImage(),
-                new ImageIcon(getClass().getResource("/anhnen3.jpg")).getImage()
+                new ImageIcon(getClass().getResource("/Imgs/anhnen1.jpg")).getImage(),
+                new ImageIcon(getClass().getResource("/Imgs/anhnen2.jpg")).getImage(),
+                new ImageIcon(getClass().getResource("/Imgs/anhnen3.jpg")).getImage()
         };
 
         Timer bannerTimer = new Timer(2000, e -> {
@@ -70,8 +76,8 @@ public class BenhNhan extends JFrame {
             backgroundPanel.repaint();
         });
         bannerTimer.start();
-
-        backgroundPanel.setPreferredSize(new Dimension(0, 350));
+// kích thước ảnh
+        backgroundPanel.setPreferredSize(new Dimension(0, 730));
         backgroundPanel.setLayout(new BorderLayout());
 
         JPanel topPanel = new JPanel(new BorderLayout());
@@ -117,8 +123,8 @@ public class BenhNhan extends JFrame {
         loginButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
 
         loginButton.addActionListener(e -> {
-            dispose(); // Close the current BenhNhan frame
-            new Login(); // Open a new LoginPage
+            dispose();
+            new Login();
         });
 
         accountPanel.add(loginButton);
@@ -131,8 +137,6 @@ public class BenhNhan extends JFrame {
             accountLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
             accountLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-            CardLayout cardLayout_tk = new CardLayout();
-            JPanel mainPanel_tk = new JPanel(cardLayout_tk);
 
             accountLabel.addMouseListener(new MouseAdapter() {
                 @Override
@@ -142,7 +146,7 @@ public class BenhNhan extends JFrame {
                     JMenuItem logoutItem = new JMenuItem("Đăng xuất");
 
                     infoItem.addActionListener(evt -> {
-                        cardLayout_tk.show(mainPanel_tk, "account"); // Chuyển sang bảng tài khoản
+                        cardLayout.show(mainPanel, "account"); // Chuyển sang bảng tài khoản
                     });
 
                     logoutItem.addActionListener(evt -> {
@@ -165,8 +169,8 @@ public class BenhNhan extends JFrame {
         menuBar.add(accountPanel);
         setJMenuBar(menuBar);
 
-        CardLayout cardLayout = new CardLayout();
-        JPanel mainPanel = new JPanel(cardLayout);
+         cardLayout = new CardLayout();
+         mainPanel = new JPanel(cardLayout);
 
         JPanel homePanel = new JPanel(new BorderLayout());
         homePanel.add(topPanel, BorderLayout.NORTH);
@@ -194,6 +198,56 @@ public class BenhNhan extends JFrame {
         lblAvatar.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 
         JButton btnUploadImage = new JButton("Tải ảnh");
+        btnUploadImage.setFocusPainted(false);
+
+        btnUploadImage.addActionListener(e -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Image files", "jpg", "png", "jpeg"));
+            int returnValue = fileChooser.showOpenDialog(null);
+
+            if (returnValue == JFileChooser.APPROVE_OPTION) {
+                try {
+                    File selectedFile = fileChooser.getSelectedFile();
+                    // Tạo tên tệp duy nhất dựa trên mã bệnh nhân và thời gian
+                    String fileName = "avatar_" + UserSession.userId + "_" + System.currentTimeMillis() +
+                            selectedFile.getName().substring(selectedFile.getName().lastIndexOf("."));
+                    String destinationPath = "src/Imgs/avatars/" + fileName;
+
+                    // Tạo thư mục nếu chưa tồn tại
+                    new File("src/Imgs/avatars/").mkdirs();
+
+                    // Sao chép tệp vào thư mục đích
+                    Files.copy(selectedFile.toPath(), new File(destinationPath).toPath(), StandardCopyOption.REPLACE_EXISTING);
+
+                    // Hiển thị ảnh trên lblAvatar
+                    ImageIcon imageIcon = new ImageIcon(destinationPath);
+                    Image image = imageIcon.getImage().getScaledInstance(
+                            lblAvatar.getWidth(),
+                            lblAvatar.getHeight(),
+                            Image.SCALE_SMOOTH
+                    );
+                    lblAvatar.setIcon(new ImageIcon(image));
+
+                    // Cập nhật đường dẫn ảnh vào cơ sở dữ liệu
+                    try (Connection conn = ConnectionDatabase.getConnection()) {
+                        String sql = "UPDATE benhnhan SET avatar = ? WHERE mabenhnhan = ?";
+                        PreparedStatement stmt = conn.prepareStatement(sql);
+                        stmt.setString(1, destinationPath);
+                        stmt.setString(2, UserSession.userId.trim());
+                        int rowsAffected = stmt.executeUpdate();
+                        if (rowsAffected > 0) {
+                            JOptionPane.showMessageDialog(null, "Tải và lưu ảnh thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                        } else {
+                            JOptionPane.showMessageDialog(null, "Lỗi khi lưu ảnh vào cơ sở dữ liệu.", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                        }
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    JOptionPane.showMessageDialog(null, "Lỗi khi tải ảnh: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
 
         JPanel avatarPanel = new JPanel(new BorderLayout());
         avatarPanel.add(lblAvatar, BorderLayout.CENTER);
@@ -251,7 +305,7 @@ public class BenhNhan extends JFrame {
         gbc.gridx = 3; gbc.gridy = 0; contentPanel.add(new JLabel("Ngày vào viện:"), gbc);
         gbc.gridx = 4; contentPanel.add(tfNgayKham, gbc);
 
-        gbc.gridx = 3; gbc.gridy = 1; contentPanel.add(new JLabel("Mã bác sĩ:"), gbc);
+        gbc.gridx = 3; gbc.gridy = 1; contentPanel.add(new JLabel("Mã bác sĩ phụ trách:"), gbc);
         gbc.gridx = 4; contentPanel.add(tfMaBS, gbc);
 
         gbc.gridx = 3; gbc.gridy = 2; contentPanel.add(new JLabel("Bác sĩ phụ trách:"), gbc);
@@ -267,10 +321,9 @@ public class BenhNhan extends JFrame {
         gbc.gridx = 4; contentPanel.add(taDiaChi, gbc);
 
         JPanel buttonPanel = new JPanel();
-        buttonPanel.add(new JButton("Nhập mới"));
         buttonPanel.add(new JButton("Lưu"));
-        buttonPanel.add(new JButton("Đóng"));
-        buttonPanel.setBorder(BorderFactory.createEmptyBorder(5, 0, 20, 0));
+        buttonPanel.setBackground(Color.WHITE);
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(15, 0, 10, 0));
 
         // Thêm vào patientPanel
         patientPanel.add(new JScrollPane(contentPanel), BorderLayout.CENTER);
@@ -278,7 +331,15 @@ public class BenhNhan extends JFrame {
 
         // Load data into the fields
         if (isLoggedIn && UserSession.userId != null && !UserSession.userId.trim().isEmpty()) {
-            loadPatientData(tfMaBN, tfHo, cbGioiTinh, tfNgaySinh, tfCMND, tfSDT, tfNgheNghiep, cbDoiTuong, taDiaChi, tfNgayKham, tfMaBS, tfBacSi, taYeuCauKham);
+            loadPatientData(tfMaBN, tfHo, cbGioiTinh, tfNgaySinh, tfCMND, tfSDT, tfNgheNghiep, cbDoiTuong, taDiaChi, tfNgayKham, tfMaBS, tfBacSi, taYeuCauKham,lblAvatar);
+        }else {
+            try {
+                ImageIcon defaultIcon = new ImageIcon("src/Imgs/default_avatar.png");
+                Image image = defaultIcon.getImage().getScaledInstance(150, 180, Image.SCALE_SMOOTH);
+                lblAvatar.setIcon(new ImageIcon(image));
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
 
         JPanel appointmentPanel = new JPanel(new BorderLayout());
@@ -377,6 +438,7 @@ public class BenhNhan extends JFrame {
 
         // Add a Refresh button
         JButton refreshButton = new JButton("Làm mới");
+        refreshButton.setFocusPainted(false);
         refreshButton.addActionListener(e -> loadAppointments.run());
         JPanel buttonPanel2 = new JPanel(new FlowLayout(FlowLayout.CENTER));
         buttonPanel2.setBorder(BorderFactory.createEmptyBorder(5, 0, 20, 0));
@@ -499,8 +561,10 @@ public class BenhNhan extends JFrame {
         recordPanel.add(new JScrollPane(contentPanelrc), BorderLayout.CENTER);
 
         JButton btnTaiVe = new JButton("Tải về");
+        btnTaiVe.setFocusPainted(false);
         JPanel buttonPanelba = new JPanel();
         buttonPanelba.add(btnTaiVe);
+        buttonPanelba.setBackground(Color.WHITE);
         buttonPanelba.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
         recordPanel.add(buttonPanelba, BorderLayout.SOUTH);
 
@@ -677,18 +741,18 @@ public class BenhNhan extends JFrame {
     private void loadPatientData(JTextField tfMaBN, JTextField tfHo, JComboBox<String> cbGioiTinh,
                                  JTextField tfNgaySinh, JTextField tfCMND, JTextField tfSDT,
                                  JTextField tfNgheNghiep, JComboBox<String> cbDoiTuong, JTextArea taDiaChi,
-                                 JTextField tfNgayKham, JTextField tfMaBS, JTextField tfBacSi, JTextArea taYeuCauKham) {
-        // Kiểm tra vai trò và userId
+                                 JTextField tfNgayKham, JTextField tfMaBS, JTextField tfBacSi,
+                                 JTextArea taYeuCauKham, JLabel lblAvatar) { // Thêm lblAvatar vào tham số
         if (UserSession.userId == null || !UserSession.role.equals("benhnhan")) {
             return;
         }
 
         try (Connection conn = ConnectionDatabase.getConnection()) {
-            // Truy vấn thông tin bệnh nhân
-            String sqlBenhNhan = "SELECT mabenhnhan, hoten, gioitinh, ngaysinh, sdt, diachi, cccd, ngayvaovien, ngayravien, nghe_nghiep " +
+            // Truy vấn thông tin bệnh nhân, bao gồm cột avatar
+            String sqlBenhNhan = "SELECT mabenhnhan, hoten, gioitinh, ngaysinh, sdt, diachi, cccd, ngayvaovien, nghe_nghiep, avatar " +
                     "FROM benhnhan WHERE mabenhnhan = ?";
             PreparedStatement stmtBenhNhan = conn.prepareStatement(sqlBenhNhan);
-            stmtBenhNhan.setString(1, UserSession.userId.trim()); // Sử dụng userId thay vì maBenhNhan
+            stmtBenhNhan.setString(1, UserSession.userId.trim());
             ResultSet rsBenhNhan = stmtBenhNhan.executeQuery();
 
             if (rsBenhNhan.next()) {
@@ -701,16 +765,41 @@ public class BenhNhan extends JFrame {
                 tfNgheNghiep.setText(rsBenhNhan.getString("nghe_nghiep") != null ? rsBenhNhan.getString("nghe_nghiep") : "");
                 taDiaChi.setText(rsBenhNhan.getString("diachi") != null ? rsBenhNhan.getString("diachi") : "");
                 tfNgayKham.setText(rsBenhNhan.getDate("ngayvaovien") != null ? rsBenhNhan.getDate("ngayvaovien").toString() : "");
+
+                // Tải ảnh đại diện
+                String avatarPath = rsBenhNhan.getString("avatar");
+                if (avatarPath != null && !avatarPath.isEmpty()) {
+                    File avatarFile = new File(avatarPath);
+                    if (avatarFile.exists()) {
+                        ImageIcon imageIcon = new ImageIcon(avatarPath);
+                        Image image = imageIcon.getImage().getScaledInstance(150, 180, Image.SCALE_SMOOTH);
+                        lblAvatar.setIcon(new ImageIcon(image));
+                    } else {
+                        // Set default avatar if file doesn't exist
+                        ImageIcon defaultIcon = new ImageIcon("src/Imgs/default_avatar.png");
+                        Image image = defaultIcon.getImage().getScaledInstance(150, 180, Image.SCALE_SMOOTH);
+                        lblAvatar.setIcon(new ImageIcon(image));
+                    }
+                } else {
+                    // Set default avatar if no avatar path
+                    ImageIcon defaultIcon = new ImageIcon("src/Imgs/default_avatar.png");
+                    Image image = defaultIcon.getImage().getScaledInstance(150, 180, Image.SCALE_SMOOTH);
+                    lblAvatar.setIcon(new ImageIcon(image));
+                }
             } else {
                 JOptionPane.showMessageDialog(null, "Không tìm thấy thông tin bệnh nhân.", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
-                return; // Thoát nếu không tìm thấy bệnh nhân
+                // Set default avatar
+                ImageIcon defaultIcon = new ImageIcon("src/Imgs/default_avatar.png");
+                Image image = defaultIcon.getImage().getScaledInstance(150, 180, Image.SCALE_SMOOTH);
+                lblAvatar.setIcon(new ImageIcon(image));
+                return;
             }
 
             // Truy vấn thông tin phiếu khám
             String sqlPhieuKham = "SELECT ma_bac_si, bac_si_phu_trach, yeu_cau_kham, doi_tuong " +
                     "FROM phieukham WHERE ma_benh_nhan = ?";
             PreparedStatement stmtPhieuKham = conn.prepareStatement(sqlPhieuKham);
-            stmtPhieuKham.setString(1, UserSession.userId.trim()); // Sử dụng userId thay vì maBenhNhan
+            stmtPhieuKham.setString(1, UserSession.userId.trim());
             ResultSet rsPhieuKham = stmtPhieuKham.executeQuery();
 
             if (rsPhieuKham.next()) {
@@ -727,6 +816,14 @@ public class BenhNhan extends JFrame {
         } catch (SQLException ex) {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(null, "Lỗi khi tải dữ liệu bệnh nhân: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+
+            try {
+                ImageIcon defaultIcon = new ImageIcon("src/Imgs/default_avatar.png");
+                Image image = defaultIcon.getImage().getScaledInstance(150, 180, Image.SCALE_SMOOTH);
+                lblAvatar.setIcon(new ImageIcon(image));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -950,22 +1047,45 @@ public class BenhNhan extends JFrame {
         JPanel panel = new JPanel();
         panel.setBackground(Color.WHITE);
         panel.setLayout(null);
-        panel.setPreferredSize(new Dimension(1500, 890));
+        panel.setPreferredSize(new Dimension(1550, 890));
 
+        JPanel topPanel_lh = createTopPanel();
+        topPanel_lh.setBounds(0,0,1550,445);
+        panel.add(topPanel_lh);
 
         JPanel footerPanel = createFooterPanel();
-        footerPanel.setBounds(0, 400, 1500, 400);
+        footerPanel.setBounds(0, 400, 1550, 400);
         panel.add(footerPanel);
 
         return panel;
     }
+    private JPanel createTopPanel(){
+
+        JPanel topPanel_lh = new JPanel();
+        topPanel_lh.setBackground(Color.WHITE);
+        topPanel_lh.setPreferredSize(new Dimension(1550, 450));
+
+        ImageIcon imageTop = new ImageIcon("src/Imgs/bando.png");
+        Image scaledImage = imageTop.getImage().getScaledInstance(1550, 450, Image.SCALE_SMOOTH);
+        JLabel imageLabel = new JLabel(new ImageIcon(scaledImage));
+        topPanel_lh.add(imageLabel, BorderLayout.CENTER);
+
+        JPanel container = new JPanel();
+        container.setLayout(new BorderLayout());
+        container.add(topPanel_lh, BorderLayout.SOUTH);
+
+        return container;
+    }
 
     private JPanel createFooterPanel() {
+
+        // Footer Panel
         JPanel footerPanel = new JPanel();
         footerPanel.setBackground(new Color(106, 103, 103, 255));
-        footerPanel.setPreferredSize(new Dimension(1500, 400));
+        footerPanel.setPreferredSize(new Dimension(1550, 350));
         footerPanel.setLayout(new GridLayout(2, 3));
 
+        // Các nhãn trong footer
         JLabel customerInfo = new JLabel("<html><b>THÔNG TIN KHÁCH HÀNG</b><br>Chính sách sử dụng dịch vụ<br>Hướng dẫn đặt lịch hẹn<br>Hỗ trợ bệnh nhân<br>Điều khoản dịch vụ</html>");
         customerInfo.setForeground(Color.WHITE);
         customerInfo.setFont(new Font("Arial", Font.PLAIN, 14));
@@ -996,14 +1116,20 @@ public class BenhNhan extends JFrame {
         paymentMethods.setHorizontalAlignment(JLabel.CENTER);
         footerPanel.add(paymentMethods);
 
-        JLabel socialMedia = new JLabel("<html><b>KẾT NỐI VỚI CHÚNG TÔI</b><br>Facebook: fb.com/rkk<br>Twitter: twitter.com/rkk<br>LinkedIn: linkedin.com/company/rkk</html>");
+        JLabel socialMedia = new JLabel("<html><b>KẾT NỐI VỚI CHÚNG TÔI</b><br>Facebook: fb.com/rkk<br>Twitter: twitter.com/rkk<br>LinkedIn: linkedin.com/hospital/rkk</html>");
         socialMedia.setForeground(Color.WHITE);
         socialMedia.setFont(new Font("Arial", Font.PLAIN, 14));
         socialMedia.setHorizontalAlignment(JLabel.CENTER);
         footerPanel.add(socialMedia);
 
-        return footerPanel;
+        // Tạo một panel bao để chứa cả ảnh và footer
+        JPanel container = new JPanel();
+        container.setLayout(new BorderLayout());
+        container.add(footerPanel, BorderLayout.SOUTH);
+
+        return container;
     }
+
 
     // thông tin tài khoản
     private JPanel createAccountPanel() {
@@ -1014,9 +1140,8 @@ public class BenhNhan extends JFrame {
 
         JPanel accountPanel = new JPanel(new BorderLayout());
         accountPanel.setBackground(Color.WHITE);
-        accountPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        accountPanel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
 
-        // Title
         JLabel lblTitle = new JLabel("THÔNG TIN TÀI KHOẢN", SwingConstants.CENTER);
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 24));
         lblTitle.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
@@ -1038,19 +1163,21 @@ public class BenhNhan extends JFrame {
         JLabel lblGioiTinh = new JLabel("Giới tính: ");
         JLabel lblSDT = new JLabel("Số điện thoại: ");
         JLabel lblEmail = new JLabel("Email: ");
+        JLabel lblcccd = new JLabel("CCCD: ");
 
         lblHoTen.setFont(labelFont);
         lblNgaySinh.setFont(labelFont);
         lblGioiTinh.setFont(labelFont);
         lblSDT.setFont(labelFont);
         lblEmail.setFont(labelFont);
+        lblcccd.setFont(labelFont);
 
-        // Add labels to panel
         gbc.gridx = 0; gbc.gridy = 0; contentPanel.add(lblHoTen, gbc);
-        gbc.gridy = 1; contentPanel.add(lblNgaySinh, gbc);
-        gbc.gridy = 2; contentPanel.add(lblGioiTinh, gbc);
-        gbc.gridy = 3; contentPanel.add(lblSDT, gbc);
-        gbc.gridy = 4; contentPanel.add(lblEmail, gbc);
+        gbc.gridx = 1; gbc.gridy = 0; contentPanel.add(lblNgaySinh, gbc);
+        gbc.gridx = 0; gbc.gridy = 1; contentPanel.add(lblGioiTinh, gbc);
+        gbc.gridx = 1; gbc.gridy = 1; contentPanel.add(lblSDT, gbc);
+        gbc.gridx = 0; gbc.gridy = 2; contentPanel.add(lblEmail, gbc);
+        gbc.gridx = 1; gbc.gridy = 2; contentPanel.add(lblcccd, gbc);
 
         // Password change section
         JPanel passwordPanel = new JPanel(new GridBagLayout());
@@ -1088,7 +1215,7 @@ public class BenhNhan extends JFrame {
 
         // Load user data
         try (Connection conn = ConnectionDatabase.getConnection()) {
-            String sql = "SELECT bn.hoten, bn.ngaysinh, bn.gioitinh, bn.sdt, tk.email " +
+            String sql = "SELECT bn.hoten, bn.ngaysinh, bn.gioitinh, bn.sdt, tk.email, bn.cccd " +
                     "FROM benhnhan bn JOIN tai_khoan tk ON bn.sdt = tk.sdt " +
                     "WHERE bn.mabenhnhan = ?";
             PreparedStatement stmt = conn.prepareStatement(sql);
@@ -1100,12 +1227,14 @@ public class BenhNhan extends JFrame {
                 lblGioiTinh.setText("Giới tính: " + (rs.getString("gioitinh") != null ? rs.getString("gioitinh") : ""));
                 lblSDT.setText("Số điện thoại: " + (rs.getString("sdt") != null ? rs.getString("sdt") : ""));
                 lblEmail.setText("Email: " + (rs.getString("email") != null ? rs.getString("email") : ""));
+                lblcccd.setText("CCCD: " + (rs.getString("cccd") != null ? rs.getString("cccd") : ""));
             } else {
                 lblHoTen.setText("Họ và tên: Không tìm thấy");
                 lblNgaySinh.setText("Ngày sinh: ");
                 lblGioiTinh.setText("Giới tính: ");
                 lblSDT.setText("Số điện thoại: ");
                 lblEmail.setText("Email: ");
+                lblcccd.setText("CCCD: ");
             }
         } catch (SQLException ex) {
             ex.printStackTrace();
@@ -1130,12 +1259,12 @@ public class BenhNhan extends JFrame {
 
             try (Connection conn = ConnectionDatabase.getConnection()) {
                 // Verify old password
-                String sqlVerify = "SELECT mat_khau FROM tai_khoan WHERE sdt = (SELECT sdt FROM benhnhan WHERE mabenhnhan = ?)";
+                String sqlVerify = "SELECT matkhau FROM tai_khoan WHERE sdt = (SELECT sdt FROM benhnhan WHERE mabenhnhan = ?)";
                 PreparedStatement stmtVerify = conn.prepareStatement(sqlVerify);
                 stmtVerify.setString(1, UserSession.userId.trim()); // Sử dụng userId thay vì maBenhNhan
                 ResultSet rsVerify = stmtVerify.executeQuery();
                 if (rsVerify.next()) {
-                    String storedPassword = rsVerify.getString("mat_khau");
+                    String storedPassword = rsVerify.getString("matkhau");
                     if (!storedPassword.equals(oldPassword)) {
                         JOptionPane.showMessageDialog(null, "Mật khẩu cũ không đúng.", "Lỗi", JOptionPane.ERROR_MESSAGE);
                         return;
@@ -1146,7 +1275,7 @@ public class BenhNhan extends JFrame {
                 }
 
                 // Update password
-                String sqlUpdate = "UPDATE tai_khoan SET mat_khau = ? WHERE sdt = (SELECT sdt FROM benhnhan WHERE mabenhnhan = ?)";
+                String sqlUpdate = "UPDATE tai_khoan SET matkhau = ? WHERE sdt = (SELECT sdt FROM benhnhan WHERE mabenhnhan = ?)";
                 PreparedStatement stmtUpdate = conn.prepareStatement(sqlUpdate);
                 stmtUpdate.setString(1, newPassword);
                 stmtUpdate.setString(2, UserSession.userId.trim()); // Sử dụng userId thay vì maBenhNhan
