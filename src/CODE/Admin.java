@@ -3,8 +3,8 @@ package CODE;
 import javax.swing.*;
 import java.awt.*;
 
-public class BoPhanKhac extends JFrame {
-    public BoPhanKhac(boolean b) {
+public class Admin extends JFrame {
+    public Admin(boolean b) {
         setTitle("Chức năng khác");
         setSize(500, 400);
         setLocationRelativeTo(null);
@@ -48,7 +48,7 @@ public class BoPhanKhac extends JFrame {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new BoPhanKhac(true));
+        SwingUtilities.invokeLater(() -> new Admin(true));
     }
 }
 

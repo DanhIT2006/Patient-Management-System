@@ -1346,7 +1346,20 @@ public class BenhNhan extends JFrame {
         // Thêm phần đổi mật khẩu vào content panel
         gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 4;
         contentPanel.add(Box.createVerticalStrut(20), gbc);
-        gbc.gridy = 4; contentPanel.add(passwordPanel, gbc);
+
+// Create a centered panel for the password panel
+        JPanel centeredPasswordPanel = new JPanel(new GridBagLayout());
+        centeredPasswordPanel.setBackground(new Color(0x044A04));
+        GridBagConstraints gbcCentered = new GridBagConstraints();
+        gbcCentered.insets = new Insets(10, 10, 10, 10);
+        gbcCentered.anchor = GridBagConstraints.CENTER;
+        gbcCentered.gridx = 0;
+        gbcCentered.gridy = 0;
+        centeredPasswordPanel.add(passwordPanel, gbcCentered);
+
+        gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 4;
+        gbc.anchor = GridBagConstraints.CENTER; // Center the panel
+        contentPanel.add(centeredPasswordPanel, gbc);
 
         // Thêm nút "Lưu" ở dưới cùng
         JPanel buttonPanel = new JPanel();

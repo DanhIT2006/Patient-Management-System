@@ -48,7 +48,7 @@ public class Login extends JFrame implements ActionListener  {
         glassPanel.add(titleLabel);
 
         // Thêm JComboBox để chọn vai trò
-        String[] roles = {"Bệnh nhân", "Bác sĩ", "Bộ phận khác"};
+        String[] roles = {"Bệnh nhân", "Bác sĩ", "Admin"};
         roleComboBox = new JComboBox<>(roles);
         roleComboBox.setMaximumSize(new Dimension(250, 35));
         roleComboBox.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -130,11 +130,12 @@ public class Login extends JFrame implements ActionListener  {
                         "FROM tai_khoan_bs t JOIN bac_si b ON t.sdt = b.sdt WHERE t.sdt = ?";
                 role = "bacsi";
                 userIdField = "mabacsi";
-            } else if (selectedRole.equals("Bộ phận khác")) {
-                query = "SELECT t.sdt, t.matkhau, b.manv, b.hoten, b.gioitinh, b.ngaysinh, b.sdt AS bophan_sdt, b.diachi " +
-                        "FROM tai_khoan_bpk t JOIN bophan_khac b ON t.sdt = b.sdt WHERE t.sdt = ?";
-                role = "bophankhac";
-                userIdField = "manv";
+            } else if (selectedRole.equals("Admin")) {
+                query = "SELECT sdt, matkhau, hoten, gioitinh, ngaysinh, diachi " +
+                        "FROM tai_khoan_bpk " +
+                        "WHERE sdt = ?";
+                role = "admin";
+                userIdField = "sdt"; // Hoặc trường khóa chính của bảng tai_khoan_bpk
             }
 
             PreparedStatement ps = conn.prepareStatement(query);
@@ -148,10 +149,10 @@ public class Login extends JFrame implements ActionListener  {
                     String hoTen = rs.getString("hoten");
                     String gioiTinh = rs.getString("gioitinh");
                     String ngaySinh = rs.getDate("ngaysinh") != null ? rs.getDate("ngaysinh").toString() : "";
-                    String sdt = rs.getString(5); // sdt từ bảng tương ứng
+                    String sdt = rs.getString("sdt");
                     String diaChi = rs.getString("diachi");
 
-                    UserSession.setUserSession(userId, role, hoTen, gioiTinh, ngaySinh, sdt, diaChi);
+                    UserSession.setUserSession(userId, role, hoTen != null ? hoTen : "", gioiTinh != null ? gioiTinh : "", ngaySinh, sdt, diaChi != null ? diaChi : "");
 
                     JOptionPane.showMessageDialog(frame, "Chào mừng bạn, " + hoTen + "!");
                     frame.dispose();
@@ -160,6 +161,8 @@ public class Login extends JFrame implements ActionListener  {
                         SwingUtilities.invokeLater(() -> new BenhNhan(true).setVisible(true));
                     } else if (role.equals("bacsi")) {
                         SwingUtilities.invokeLater(() -> new BacSi(true).setVisible(true));
+                    } else if (role.equals("admin")) {
+                        SwingUtilities.invokeLater(() -> new Admin(true).setVisible(true));
                     }
                 } else {
                     JOptionPane.showMessageDialog(frame, "Sai mật khẩu!", "Lỗi", JOptionPane.ERROR_MESSAGE);
@@ -169,7 +172,7 @@ public class Login extends JFrame implements ActionListener  {
             }
         } catch (SQLException ex) {
             ex.printStackTrace();
-            JOptionPane.showMessageDialog(frame, "Lỗi kết nối cơ sở dữ liệu: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(frame, "Lỗi kết nối cơ sở dữ liệu: " + ex.getMessage() + "\nSQL State: " + ex.getSQLState() + "\nError Code: " + ex.getErrorCode(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
     }
 }

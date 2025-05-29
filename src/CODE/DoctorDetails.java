@@ -23,10 +23,10 @@ public class DoctorDetails extends JFrame {
         setLayout(new BorderLayout());
 
         JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        searchPanel.setBackground(new Color(197, 248, 229)); // hồng nhạt hoặc màu bạn chọn
+        searchPanel.setBackground(new Color(197, 248, 229));
 
         tfSearch = new JTextField(20);
-        cbKhoa = new JComboBox<>(new String[] {"Tất cả", "Đa khoa", "Chỉnh hình", "Nội tiết", "Tim mạch", "Hô hấp"});
+        cbKhoa = new JComboBox<>(new String[]{"Tất cả", "Đa khoa", "Chỉnh hình", "Nội tiết", "Tim mạch", "Hô hấp"});
         JButton btnSearch = new JButton("Tìm kiếm");
         JButton btnExport = new JButton("Xuất Excel");
         JButton btnStats = new JButton("Thống kê");
@@ -41,8 +41,8 @@ public class DoctorDetails extends JFrame {
         add(searchPanel, BorderLayout.NORTH);
 
         model = new DefaultTableModel();
-        model.setColumnIdentifiers(new String[] {
-                "ID", "Họ tên", "Khoa", "Chức vụ", "Trình độ", "SĐT", "Email", "CCCD", "Ngày sinh", "Avatar"
+        model.setColumnIdentifiers(new String[]{
+                "Mã bác sĩ", "Họ tên", "Khoa", "Chức vụ", "Trình độ", "SĐT", "Email", "CCCD", "Ngày sinh", "Avatar"
         });
 
         table = new JTable(model);
@@ -101,11 +101,11 @@ public class DoctorDetails extends JFrame {
         setVisible(true);
     }
 
-    private void loadDoctorData(String nameFilter, String khoaFilter) {
+    public void loadDoctorData(String nameFilter, String khoaFilter) {
         model.setRowCount(0);
         String query = "SELECT * FROM bac_si WHERE 1=1";
         if (!nameFilter.isEmpty()) {
-            query += " AND ten LIKE '%" + nameFilter + "%'";
+            query += " AND hoten LIKE '%" + nameFilter + "%'";
         }
         if (!khoaFilter.equals("Tất cả")) {
             query += " AND khoa = '" + khoaFilter + "'";
@@ -116,16 +116,16 @@ public class DoctorDetails extends JFrame {
              ResultSet rs = stmt.executeQuery(query)) {
 
             while (rs.next()) {
-                model.addRow(new Object[] {
-                        rs.getInt("id"),
-                        rs.getString("ten"),
+                model.addRow(new Object[]{
+                        rs.getString("mabacsi"),
+                        rs.getString("hoten"),
                         rs.getString("khoa"),
-                        rs.getString("chuc_vu"),
+                        rs.getString("nghe_nghiep"),
                         rs.getString("trinh_do"),
-                        rs.getString("so_dien_thoai"),
+                        rs.getString("sdt"),
                         rs.getString("email"),
                         rs.getString("cccd"),
-                        rs.getDate("ngay_sinh"),
+                        rs.getDate("ngaysinh"),
                         rs.getString("avatar") != null ? rs.getString("avatar") : ""
                 });
             }
@@ -143,7 +143,7 @@ public class DoctorDetails extends JFrame {
             return;
         }
 
-        int id = (int) model.getValueAt(row, 0);
+        String mabacsi = (String) model.getValueAt(row, 0);
         String ten = (String) model.getValueAt(row, 1);
         String khoa = (String) model.getValueAt(row, 2);
         String chucVu = (String) model.getValueAt(row, 3);
@@ -154,7 +154,7 @@ public class DoctorDetails extends JFrame {
         java.sql.Date ngaySinh = (java.sql.Date) model.getValueAt(row, 8);
         String avatar = (String) model.getValueAt(row, 9);
 
-        new EditDoctorForm(this, id, ten, khoa, chucVu, trinhDo, sdt, email, cccd, ngaySinh, avatar);
+        new EditDoctorForm(this, mabacsi, ten, khoa, chucVu, trinhDo, sdt, email, cccd, ngaySinh, avatar);
     }
 
     private void deleteDoctor() {
@@ -166,12 +166,12 @@ public class DoctorDetails extends JFrame {
         int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc chắn muốn xóa bác sĩ này?", "Xác nhận", JOptionPane.YES_NO_OPTION);
         if (confirm != JOptionPane.YES_OPTION) return;
 
-        int id = (int) model.getValueAt(row, 0);
+        String maBacSi = (String) model.getValueAt(row, 0);
 
         try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/doancoso", "root", "");
-             PreparedStatement pst = conn.prepareStatement("DELETE FROM bac_si WHERE id = ?")) {
+             PreparedStatement pst = conn.prepareStatement("DELETE FROM bac_si WHERE mabacsi = ?")) {
 
-            pst.setInt(1, id);
+            pst.setString(1, maBacSi);
             pst.executeUpdate();
             model.removeRow(row);
             imageLabel.setIcon(null);
@@ -202,13 +202,13 @@ public class DoctorDetails extends JFrame {
             for (int i = 0; i < model.getColumnCount(); i++) {
                 fw.write(model.getColumnName(i) + ",");
             }
-            fw.write("\\n");
+            fw.write("\n");
 
             for (int i = 0; i < model.getRowCount(); i++) {
                 for (int j = 0; j < model.getColumnCount(); j++) {
                     fw.write(model.getValueAt(i, j).toString() + ",");
                 }
-                fw.write("\\n");
+                fw.write("\n");
             }
 
             JOptionPane.showMessageDialog(this, "Xuất danh sách thành công (ds_bacsi.csv).");
@@ -233,7 +233,6 @@ public class DoctorDetails extends JFrame {
             JOptionPane.showMessageDialog(this, "Lỗi khi thống kê.");
         }
     }
-
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(DoctorDetails::new);
