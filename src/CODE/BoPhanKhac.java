@@ -26,7 +26,6 @@ public class BoPhanKhac extends JFrame {
         JButton btnPatientDetails = new JButton(" Chi Tiết Bệnh Nhân");
         JButton btnBack = new JButton(" Quay về trang chủ");
 
-        // Thiết lập style cho các nút
         JButton[] buttons = {btnAddDoctor, btnAddPatient, btnDoctorDetails, btnPatientDetails, btnBack};
         for (JButton btn : buttons) {
             btn.setFont(new Font("Segoe UI", Font.PLAIN, 16));
@@ -36,7 +35,6 @@ public class BoPhanKhac extends JFrame {
             panel.add(btn);
         }
 
-        // Sự kiện nút
         btnAddDoctor.addActionListener(e -> new AddDoctor().setVisible(true));
         btnAddPatient.addActionListener(e -> new AddPatient().setVisible(true));
         btnDoctorDetails.addActionListener(e -> new DoctorDetails().setVisible(true));
