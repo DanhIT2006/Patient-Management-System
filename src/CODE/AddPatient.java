@@ -18,7 +18,7 @@ import java.io.FileOutputStream;
 
 public class AddPatient extends JFrame {
 
-    private JTextField tfMaBN, tfHoTen, tfSDT, tfCCCD, tfNgheNghiep, tfKhoa, tfBenh, tfYeuCau, tfThuoc, tfVienPhi, tfPhong,tfemail;
+    private JTextField tfMaBN, tfHoTen, tfSDT, tfCCCD, tfNgheNghiep, tfKhoa, tfBenh, tfYeuCau, tfThuoc, tfVienPhi, tfPhong;
     private JTextArea taDiaChi;
     private JComboBox<String> cbGioiTinh;
     private JLabel lblAvatar;
@@ -88,7 +88,6 @@ public class AddPatient extends JFrame {
         tfThuoc = addLabeledField("Thuốc:", x2, y2 += gap);
         tfPhong = addLabeledField("Phòng:", x2, y2 += gap);
         tfVienPhi = addLabeledField("Viện phí:", x2, y2 += gap);
-        tfemail = addLabeledField("Email:", x2,y2 += gap);
         tfVienPhi.setEditable(false);
 
         addLabel("Ảnh đại diện:", x2, y2 += gap);
@@ -230,7 +229,7 @@ public class AddPatient extends JFrame {
         tfVienPhi.setText(String.valueOf(vienPhi));
 
         try (Connection conn = DriverManager.getConnection(DB_URL, USER, PASS)) {
-            String sql = "INSERT INTO benhnhan (mabenhnhan, hoten, gioitinh, ngaysinh, sdt, diachi, cccd, ngayvaovien, ngayravien, nghe_nghiep, khoa, benh, yeu_cau, thuoc, vien_phi, phong,email, avatar) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO benhnhan (mabenhnhan, hoten, gioitinh, ngaysinh, sdt, diachi, cccd, ngayvaovien, ngayravien, nghe_nghiep, khoa, benh, yeu_cau, thuoc, vien_phi, phong, avatar) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setString(1, tfMaBN.getText());
             stmt.setString(2, tfHoTen.getText());
@@ -248,8 +247,7 @@ public class AddPatient extends JFrame {
             stmt.setString(14, tfThuoc.getText());
             stmt.setInt(15, vienPhi);
             stmt.setString(16, String.valueOf(soPhong));
-            stmt.setString(17, tfemail.getText());
-            stmt.setString(18, selectedImagePath);
+            stmt.setString(17, selectedImagePath);
 
             stmt.executeUpdate();
             JOptionPane.showMessageDialog(this, "Thêm bệnh nhân thành công!");
