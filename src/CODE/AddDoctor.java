@@ -11,6 +11,7 @@ import java.sql.*;
 public class AddDoctor extends JFrame {
     private JTextField tfTen, tfDiaChi, tfSDT, tfEmail, tfCCCD, tfTrinhDo,tfMaBacSi;
     private JComboBox<String> cbChucVu, cbKhoa;
+    private JPasswordField pfMatKhau;
     private JDateChooser dateChooser;
     private JLabel imageLabel;
     private String imagePath = "";
@@ -84,6 +85,12 @@ public class AddDoctor extends JFrame {
         gbc.gridx = 2; mainPanel.add(labels[7], gbc);
         gbc.gridx = 3; mainPanel.add(tfTrinhDo, gbc);
 
+        JLabel lbMatKhau = new JLabel("Mật khẩu:");
+        lbMatKhau.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        pfMatKhau = new JPasswordField();
+        gbc.gridy = 5; gbc.gridx = 2; mainPanel.add(lbMatKhau, gbc);
+        gbc.gridx = 3; mainPanel.add(pfMatKhau, gbc);
+
 // Row 5: "Ảnh đại diện"
         gbc.gridy = 5; gbc.gridx = 0; mainPanel.add(labels[9], gbc);
         JPanel imgPanel = new JPanel(new BorderLayout());
@@ -140,10 +147,11 @@ public class AddDoctor extends JFrame {
         String cccd = tfCCCD.getText().trim();
         String trinhDo = tfTrinhDo.getText().trim();
         java.util.Date dob = dateChooser.getDate();
+        String matKhau = new String(pfMatKhau.getPassword()).trim();
 
         // Validate required fields
-        if (maBacSi.isEmpty() || ten.isEmpty() || diaChi.isEmpty() || sdt.isEmpty() || email.isEmpty() || dob == null) {
-            JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ thông tin, bao gồm mã bác sĩ, số điện thoại và email!");
+        if (maBacSi.isEmpty() || ten.isEmpty() || diaChi.isEmpty() || sdt.isEmpty() || email.isEmpty() || matKhau.isEmpty() || dob == null) {
+            JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ thông tin, bao gồm mã bác sĩ, số điện thoại, email và mật khẩu!");
             return;
         }
 
@@ -159,17 +167,24 @@ public class AddDoctor extends JFrame {
             return;
         }
 
+        // Optionally, validate password strength
+        if (matKhau.length() < 6) {
+            JOptionPane.showMessageDialog(this, "Mật khẩu phải có ít nhất 6 ký tự!");
+            return;
+        }
+
         Connection conn = null;
         try {
             // Start a transaction
             conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/doancoso", "root", "");
             conn.setAutoCommit(false); // Disable auto-commit to use transaction
 
-            // 1. Insert into tai_khoan_bs (assuming it has sdt, email, and possibly other fields)
-            String sqlTaiKhoan = "INSERT INTO tai_khoan_bs (sdt, email) VALUES (?, ?)";
+            // 1. Insert into tai_khoan_bs with password
+            String sqlTaiKhoan = "INSERT INTO tai_khoan_bs (sdt, email, matkhau) VALUES (?, ?, ?)";
             PreparedStatement pstTaiKhoan = conn.prepareStatement(sqlTaiKhoan);
             pstTaiKhoan.setString(1, sdt);
             pstTaiKhoan.setString(2, email);
+            pstTaiKhoan.setString(3, matKhau); // Add password
             pstTaiKhoan.executeUpdate();
 
             // 2. Insert into bac_si
@@ -189,7 +204,7 @@ public class AddDoctor extends JFrame {
 
             pstBacSi.executeUpdate();
 
-            // Commit the transaction
+            //iamas: // Commit the transaction
             conn.commit();
             JOptionPane.showMessageDialog(this, "Thêm bác sĩ và tài khoản thành công!");
             dispose();

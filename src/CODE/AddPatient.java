@@ -1,5 +1,3 @@
-
-
 package CODE;
 
 import javax.swing.*;
@@ -9,17 +7,18 @@ import java.awt.Font;
 import java.awt.Image;
 import java.awt.event.*;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.sql.*;
 import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.*;
-import java.io.FileOutputStream;
 
 public class AddPatient extends JFrame {
 
     private JTextField tfMaBN, tfHoTen, tfSDT, tfCCCD, tfNgheNghiep, tfKhoa, tfBenh, tfYeuCau, tfThuoc, tfVienPhi, tfPhong, tfEmail;
+    private JPasswordField pfMatKhau;
     private JTextArea taDiaChi;
     private JComboBox<String> cbGioiTinh;
     private JLabel lblAvatar;
@@ -34,7 +33,7 @@ public class AddPatient extends JFrame {
 
     public AddPatient() {
         setTitle("Thêm bệnh nhân");
-        setSize(950, 750);
+        setSize(950, 800);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         getContentPane().setBackground(new Color(255, 230, 230));
@@ -81,6 +80,12 @@ public class AddPatient extends JFrame {
 
         tfNgheNghiep = addLabeledField("Nghề nghiệp:", x, y += gap);
 
+        // Add password field below "Nghề nghiệp"
+        addLabel("Mật khẩu:", x, y += gap);
+        pfMatKhau = new JPasswordField();
+        pfMatKhau.setBounds(x + w, y, 200, h);
+        add(pfMatKhau);
+
         int x2 = 500, y2 = 60;
 
         tfKhoa = addLabeledField("Khoa:", x2, y2);
@@ -110,20 +115,19 @@ public class AddPatient extends JFrame {
         add(btnChonAnh);
 
         JButton btnThem = new JButton("Thêm bệnh nhân");
-        btnThem.setBounds(300, 630, 150, 30);
+        btnThem.setBounds(300, 680, 150, 30);
         btnThem.addActionListener(e -> {
             String email = tfEmail.getText().trim();
             if (!isValidEmail(email)) {
                 JOptionPane.showMessageDialog(null, "Email không hợp lệ!");
                 return;
             }
-
             insertBenhNhanToDatabase();
         });
         add(btnThem);
 
         JButton btnXemTruoc = new JButton("In hóa đơn");
-        btnXemTruoc.setBounds(500, 630, 120, 30);
+        btnXemTruoc.setBounds(500, 680, 120, 30);
         btnXemTruoc.addActionListener(e -> {
             showInvoicePreview();
             exportInvoiceToPDF();
@@ -135,7 +139,6 @@ public class AddPatient extends JFrame {
         String regex = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
         return email.matches(regex);
     }
-
 
     private JTextField addLabeledField(String label, int x, int y) {
         addLabel(label, x, y);
@@ -166,14 +169,12 @@ public class AddPatient extends JFrame {
     }
 
     private long tinhSoNgay(Date from, Date to) {
+        if (from == null || to == null) return 0;
         long diff = to.getTime() - from.getTime();
         return TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS);
     }
 
-
-
     private void showInvoicePreview() {
-
         String phongText = tfPhong.getText().trim();
         if (phongText.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Vui lòng nhập số phòng.");
@@ -194,7 +195,6 @@ public class AddPatient extends JFrame {
         Date ngayVao = dcVaoVien.getDate();
         Date ngayRa = dcRaVien.getDate();
         String avatarPath = selectedImagePath;
-
 
         String loaiPhong = getLoaiPhong(soPhong);
         int donGia = getDonGia(soPhong);
@@ -224,7 +224,6 @@ public class AddPatient extends JFrame {
     }
 
     private void insertBenhNhanToDatabase() {
-
         Connection conn = null;
         PreparedStatement pst1 = null;
         PreparedStatement pst2 = null;
@@ -242,101 +241,143 @@ public class AddPatient extends JFrame {
             return;
         }
 
-        Date ngayVao = dcVaoVien.getDate();
-        Date ngayRa = dcRaVien.getDate();
+        String maBN = tfMaBN.getText().trim();
+        String hoTen = tfHoTen.getText().trim();
+        String gioiTinh = (String) cbGioiTinh.getSelectedItem();
+        java.util.Date ngaySinh = dcNgaySinh.getDate();
+        String sdt = tfSDT.getText().trim();
+        String cccd = tfCCCD.getText().trim();
+        String diaChi = taDiaChi.getText().trim();
+        java.util.Date ngayVao = dcVaoVien.getDate();
+        java.util.Date ngayRa = dcRaVien.getDate();
+        String ngheNghiep = tfNgheNghiep.getText().trim();
+        String khoa = tfKhoa.getText().trim();
+        String benh = tfBenh.getText().trim();
+        String yeuCau = tfYeuCau.getText().trim();
+        String thuoc = tfThuoc.getText().trim();
+        String email = tfEmail.getText().trim();
+        String matKhau = new String(pfMatKhau.getPassword()).trim();
+        String avatar = selectedImagePath;
+
+        // Validate required fields
+        if (maBN.isEmpty() || hoTen.isEmpty() || sdt.isEmpty() || email.isEmpty() || matKhau.isEmpty() || ngaySinh == null || ngayVao == null || ngayRa == null) {
+            JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ thông tin, bao gồm mã bệnh nhân, họ tên, số điện thoại, email, mật khẩu, ngày sinh, ngày vào viện và ngày ra viện!");
+            return;
+        }
+
+        // Validate phone number (e.g., 10-11 digits)
+        if (!sdt.matches("\\d{10,11}")) {
+            JOptionPane.showMessageDialog(this, "Số điện thoại phải có 10-11 chữ số!");
+            return;
+        }
+
+        // Validate email
+        if (!isValidEmail(email)) {
+            JOptionPane.showMessageDialog(this, "Email không hợp lệ!");
+            return;
+        }
+
+        // Validate password (minimum length)
+        if (matKhau.length() < 6) {
+            JOptionPane.showMessageDialog(this, "Mật khẩu phải có ít nhất 6 ký tự!");
+            return;
+        }
+
+        // Calculate hospital fee
         int donGia = getDonGia(soPhong);
         long soNgay = tinhSoNgay(ngayVao, ngayRa);
         int vienPhi = (int) (donGia * soNgay);
         tfVienPhi.setText(String.valueOf(vienPhi));
 
         try {
-            conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/doancoso", "root", "");
+            conn = DriverManager.getConnection(DB_URL, USER, PASS);
+            conn.setAutoCommit(false); // Start transaction
 
-            String ma;
-            do {
-                ma = "BN" + UUID.randomUUID().toString().substring(0, 8);
-                PreparedStatement check = conn.prepareStatement("SELECT COUNT(*) FROM benhnhan WHERE mabenhnhan = ?");
-                check.setString(1, ma);
-                ResultSet rs = check.executeQuery();
-                rs.next();
-                if (rs.getInt(1) == 0) break;
-            } while (true);
-            String hoten = tfHoTen.getText().trim();
-            java.sql.Date ngaysinh = new java.sql.Date(dcNgaySinh.getDate().getTime());
-            String gioitinh = (String) cbGioiTinh.getSelectedItem();
-            String diachi = taDiaChi.getText().trim();
-            String sdt = tfSDT.getText().trim();
-            String cccd = tfCCCD.getText().trim();
-            java.sql.Date ngaynhap = new java.sql.Date(dcVaoVien.getDate().getTime());
-            java.sql.Date ngayxuat = new java.sql.Date(dcRaVien.getDate().getTime());
-            String nghe = tfNgheNghiep.getText().trim();
-            String khoa = tfKhoa.getText().trim();
-            String benh = tfBenh.getText().trim();
-            String yeucau = tfYeuCau.getText().trim();
-            String thuoc = tfThuoc.getText().trim();
-            int phong = Integer.parseInt(tfPhong.getText().trim());
-            int songay = (int) TimeUnit.DAYS.convert(ngayxuat.getTime() - ngaynhap.getTime(), TimeUnit.MILLISECONDS);
-            int dongia = getDonGia(phong);
-            int vienphi = songay * dongia;
-            tfVienPhi.setText(String.valueOf(vienphi));
-            String email = tfEmail.getText().trim();
-            String avatar = selectedImagePath;
-
-
-            if (!isValidEmail(email)) {
-                JOptionPane.showMessageDialog(this, "Email không hợp lệ!");
+            // Check for duplicate sdt or email in tai_khoan
+            PreparedStatement check = conn.prepareStatement("SELECT COUNT(*) FROM tai_khoan WHERE sdt = ? OR email = ?");
+            check.setString(1, sdt);
+            check.setString(2, email);
+            ResultSet rs = check.executeQuery();
+            rs.next();
+            if (rs.getInt(1) > 0) {
+                JOptionPane.showMessageDialog(this, "Số điện thoại hoặc email đã tồn tại trong hệ thống!");
+                conn.rollback();
                 return;
             }
 
+            // Insert into tai_khoan table first (due to foreign key constraint)
+            String sql2 = "INSERT INTO tai_khoan (sdt, matkhau, email) VALUES (?, ?, ?)";
+            pst2 = conn.prepareStatement(sql2);
+            pst2.setString(1, sdt);
+            pst2.setString(2, matKhau); // Use user-entered password
+            pst2.setString(3, email);
+            pst2.executeUpdate();
 
+            // Generate unique patient ID if not provided
+            String ma;
+            if (maBN.isEmpty()) {
+                do {
+                    ma = "BN" + UUID.randomUUID().toString().substring(0, 8);
+                    PreparedStatement checkMa = conn.prepareStatement("SELECT COUNT(*) FROM benhnhan WHERE mabenhnhan = ?");
+                    checkMa.setString(1, ma);
+                    ResultSet rsMa = checkMa.executeQuery();
+                    rsMa.next();
+                    if (rsMa.getInt(1) == 0) break;
+                } while (true);
+            } else {
+                ma = maBN;
+            }
+
+            // Insert into benhnhan table
             String sql1 = "INSERT INTO benhnhan (mabenhnhan, hoten, ngaysinh, gioitinh, diachi, sdt, cccd, ngayvaovien, ngayravien, nghe_nghiep, khoa, benh, yeu_cau, thuoc, vien_phi, phong, avatar, email) "
                     + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             pst1 = conn.prepareStatement(sql1);
             pst1.setString(1, ma);
-            pst1.setString(2, hoten);
-            pst1.setDate(3, ngaysinh);
-            pst1.setString(4, gioitinh);
-            pst1.setString(5, diachi);
+            pst1.setString(2, hoTen);
+            pst1.setDate(3, new java.sql.Date(ngaySinh.getTime()));
+            pst1.setString(4, gioiTinh);
+            pst1.setString(5, diaChi);
             pst1.setString(6, sdt);
             pst1.setString(7, cccd);
-            pst1.setDate(8, ngaynhap);
-            pst1.setDate(9, ngayxuat);
-            pst1.setString(10, nghe);
+            pst1.setDate(8, new java.sql.Date(ngayVao.getTime()));
+            pst1.setDate(9, new java.sql.Date(ngayRa.getTime()));
+            pst1.setString(10, ngheNghiep);
             pst1.setString(11, khoa);
             pst1.setString(12, benh);
-            pst1.setString(13, yeucau);
+            pst1.setString(13, yeuCau);
             pst1.setString(14, thuoc);
-            pst1.setInt(15, vienphi);
-            pst1.setInt(16, phong);
+            pst1.setInt(15, vienPhi);
+            pst1.setInt(16, soPhong);
             pst1.setString(17, avatar);
             pst1.setString(18, email);
             pst1.executeUpdate();
 
-            String matkhau = UUID.randomUUID().toString().substring(0, 8);
-
-            String sql2 = "INSERT INTO tai_khoan (sdt, matkhau, email) VALUES (?, ?, ?)";
-            pst2 = conn.prepareStatement(sql2);
-            pst2.setString(1, sdt);
-            pst2.setString(2, matkhau);
-            pst2.setString(3, email);
-            pst2.executeUpdate();
-
+            // Commit transaction
+            conn.commit();
             JOptionPane.showMessageDialog(this, "Thêm bệnh nhân và tạo tài khoản thành công!");
-
-        } catch (Exception e) {
+            dispose();
+        } catch (SQLException e) {
+            try {
+                if (conn != null) conn.rollback();
+            } catch (SQLException e2) {
+                e2.printStackTrace();
+            }
             e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Thêm bệnh nhân và tạo tài khoản thành công!");
+            JOptionPane.showMessageDialog(this, "Lỗi khi thêm bệnh nhân: " + e.getMessage());
         } finally {
             try {
                 if (pst1 != null) pst1.close();
                 if (pst2 != null) pst2.close();
-                if (conn != null) conn.close();
-            } catch (Exception e2) {
-                e2.printStackTrace();
+                if (conn != null) {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
         }
-
     }
+
     private void exportInvoiceToPDF() {
         int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc chắn muốn xuất hóa đơn?", "Xác nhận", JOptionPane.OK_CANCEL_OPTION);
         if (confirm == JOptionPane.OK_OPTION) {
@@ -370,9 +411,6 @@ public class AddPatient extends JFrame {
             }
         }
     }
-
-
-
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new AddPatient().setVisible(true));
