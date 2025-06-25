@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 29, 2025 at 11:04 PM
+-- Generation Time: Jun 25, 2025 at 04:23 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -47,7 +47,8 @@ CREATE TABLE `bac_si` (
 --
 
 INSERT INTO `bac_si` (`mabacsi`, `hoten`, `gioitinh`, `ngaysinh`, `sdt`, `diachi`, `cccd`, `nghe_nghiep`, `khoa`, `email`, `trinh_do`, `avatar`) VALUES
-('BS001', 'Tran Thi B', 'Nu', '1985-05-10', '2', 'HCM', '055026783513', 'Bác sĩ ngoại khoa', '', '', '', '0');
+('BS001', 'Tran Thi B', 'Nu', '1985-05-10', '2', 'HCM', '055026783513', 'Bác sĩ ngoại khoa', '', '', '', '0'),
+('BS002', 'Trần Thị Bích', NULL, '2025-05-02', '0921205231', 'HCM', '0987654321', 'Thạc sĩ', 'Đa khoa', 'ttb12@gmail.com', 'Cao học', '');
 
 -- --------------------------------------------------------
 
@@ -82,7 +83,9 @@ CREATE TABLE `benhnhan` (
 
 INSERT INTO `benhnhan` (`mabenhnhan`, `hoten`, `gioitinh`, `ngaysinh`, `sdt`, `diachi`, `cccd`, `ngayvaovien`, `ngayravien`, `nghe_nghiep`, `avatar`, `khoa`, `benh`, `yeu_cau`, `thuoc`, `vien_phi`, `phong`, `email`) VALUES
 ('001234', 'Nguyễn Văn A', 'Nam', '1990-03-15', '1', '123 Đường Láng, Đống Đa, Hà Nội', '123456789012', '2025-05-20', '2025-05-22', 'Kỹ sư', 'src/Imgs/avatars/avatar_001234_1748368118871.jpg', '', NULL, NULL, NULL, NULL, NULL, NULL),
-('BN002', 'Phan Thanh Khang', 'Nam', '2006-10-30', '3', 'Gia Lai', '055026783541', NULL, NULL, NULL, 'src/Imgs/avatars/avatar_BN002_1748422236803.jpg', '', NULL, NULL, NULL, NULL, NULL, NULL);
+('BN002', 'Phan Thanh Khang', 'Nam', '2006-10-30', '3', 'Gia Lai', '055026783541', NULL, NULL, NULL, 'src/Imgs/avatars/avatar_BN002_1748422236803.jpg', '', NULL, NULL, NULL, NULL, NULL, NULL),
+('BN006', 'Võ Thành Danh', 'Nam', '2025-05-05', '0921205231', 'Đắk Lắk', '066206011772', '2025-05-06', '2025-05-08', 'Sinh viên', '', 'Dạ dày', 'Đau ruột thừa', 'Tận tình', '', '1600000', '245', '10a5.thanhdanh206@gmail.com'),
+('BN007', 'Phan Thanh Khang', 'Nam', '2006-10-30', '0987654321', 'Quảng Nam', '09876543212344', '2025-05-21', '2025-05-23', 'Sinh viên', 'src/Imgs/avatars/avatar_BN007_1748585429541.jpg', 'Thần kinh', 'Khùng', '', '', '8000000', '345', 'khangpt.24it@vku.udn.vn');
 
 -- --------------------------------------------------------
 
@@ -95,7 +98,7 @@ CREATE TABLE `danhgia` (
   `ma_benh_nhan` varchar(50) DEFAULT NULL,
   `rating` int(11) DEFAULT NULL,
   `comment` text DEFAULT NULL,
-  `hailong` tinyint(1) DEFAULT NULL,
+  `hailong` enum('Có','Không') DEFAULT NULL,
   `lydo` text DEFAULT NULL,
   `trainghiem` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -105,9 +108,10 @@ CREATE TABLE `danhgia` (
 --
 
 INSERT INTO `danhgia` (`ma_feedback`, `ma_benh_nhan`, `rating`, `comment`, `hailong`, `lydo`, `trainghiem`) VALUES
-(1, '001234', 5, 'cdcd', 1, 'dcdc', 'cđ'),
-(2, '001234', 4, 'br', 1, 'dcdc', 'cđ'),
-(3, '001234', 3, 'viettttt', 1, 'lý do', 'trai nghiem');
+(1, '001234', 5, 'cdcd', 'Có', 'dcdc', 'cđ'),
+(2, '001234', 4, 'br', 'Có', 'dcdc', 'cđ'),
+(3, '001234', 3, 'viettttt', 'Có', 'lý do', 'trai nghiem'),
+(4, '001234', 1, 'phat beo', 'Có', 'bbb', 'vvv');
 
 -- --------------------------------------------------------
 
@@ -132,7 +136,8 @@ CREATE TABLE `ho_so_benh_an` (
 --
 
 INSERT INTO `ho_so_benh_an` (`ma_ho_so`, `ma_benh_nhan`, `ly_do_vao_vien`, `tom_tat_benh_ly`, `tien_su_benh`, `ket_qua_xet_nghiem`, `noi_khoa`, `phau_thuat`, `tinh_trang_ra_vien`) VALUES
-(2, '001234', 'Đau bụng cấp', 'Viêm ruột thừa', 'Không', 'CRP tăng, bạch cầu cao', 'Có', 'Chưa phẫu thuật', 'Đang điều trị');
+(2, '001234', 'Đau bụng cấp', 'Viêm ruột thừa', 'Không', 'CRP tăng, bạch cầu cao', 'Có', 'Chưa phẫu thuật', 'Đang điều trị'),
+(4, 'BN002', 'Đau bụng', 'VIêm dạ dày', 'Tiểu đường', 'N/A', 'Có', 'Không', 'Đang điều trị');
 
 -- --------------------------------------------------------
 
@@ -162,7 +167,11 @@ INSERT INTO `lichhen` (`ma_lich_hen`, `ma_benh_nhan`, `ngay`, `ten_kham`, `bac_s
 (3, '001234', '2025-05-25', 'Siêu âm', 'Dr. Lê Văn D', 'Phòng 103', 'A', 'Hủy', NULL),
 (4, '001234', '2025-05-26', 'Xét nghiệm nước tiểu', 'Dr.Đỗ Văn Được', 'Phòng 104', 'B', 'Chưa khám', NULL),
 (5, '001234', '2025-05-27', 'Xét nghiệm máu', 'Dr.Trần Công Đức', 'Phòng 105', 'B', 'Chưa khám', NULL),
-(6, '001234', '2025-05-26', 'Đo điện tim', 'Dr.Trương Văn Lực', 'Phòng 106', 'B', 'Đã khám', NULL);
+(6, '001234', '2025-05-26', 'Đo điện tim', 'Dr.Trương Văn Lực', 'Phòng 106', 'B', 'Đã khám', NULL),
+(7, 'BN007', '2025-05-25', 'Xét nghiệm máu', 'Tran Thi B', '103', 'A', 'Chưa khám', 'BS001'),
+(8, 'BN007', '2025-12-30', 'bbb', 'Tran Thi B', '432', 'A', 'Chưa khám', 'BS001'),
+(9, 'BN007', '2025-06-26', 'bbb', 'Tran Thi B', '111', 'A', 'Chưa khám', 'BS001'),
+(10, 'BN007', '2025-06-12', 'ccccc', 'Tran Thi B', '311', 'A', 'Chưa khám', 'BS001');
 
 -- --------------------------------------------------------
 
@@ -188,7 +197,8 @@ CREATE TABLE `lichkham` (
 --
 
 INSERT INTO `lichkham` (`ma_lich_kham`, `ngay`, `kham`, `sdt`, `benhnhan`, `phong`, `toa`, `trangthai`, `ma_benh_nhan`, `ma_bac_si`) VALUES
-(1, '2025-06-01', 'Chụp CT', NULL, 'Nguyễn Văn A', 'Phòng 105', 'A', 'Chưa khám', '001234', 'BS001');
+(1, '2025-06-01', 'Chụp CT', NULL, 'Nguyễn Văn A', 'Phòng 105', 'A', 'Chưa khám', '001234', 'BS001'),
+(2, '2025-06-12', 'ccccc', '', 'Phan Thanh Khang', '311', 'A', 'Chưa khám', 'BN007', 'BS001');
 
 -- --------------------------------------------------------
 
@@ -222,6 +232,8 @@ CREATE TABLE `tai_khoan` (
 --
 
 INSERT INTO `tai_khoan` (`sdt`, `matkhau`, `email`) VALUES
+('0921205231', 'QrvrhH3', '10a5.thanhdanh206@gmail.com'),
+('0987654321', '1', 'khangpt.24it@vku.udn.vn'),
 ('1', '2', 'nguyenvanA@gmail.com'),
 ('3', 'B7RrkyNh', 'kakaff2006@gmail.com');
 
@@ -264,6 +276,7 @@ CREATE TABLE `tai_khoan_bs` (
 --
 
 INSERT INTO `tai_khoan_bs` (`sdt`, `matkhau`, `email`) VALUES
+('0921205231', 'Danh@11', 'ttb12@gmail.com'),
 ('2', '2', 'ttt@gmail.com');
 
 --
@@ -347,25 +360,25 @@ ALTER TABLE `tai_khoan_bs`
 -- AUTO_INCREMENT for table `danhgia`
 --
 ALTER TABLE `danhgia`
-  MODIFY `ma_feedback` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `ma_feedback` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `ho_so_benh_an`
 --
 ALTER TABLE `ho_so_benh_an`
-  MODIFY `ma_ho_so` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `ma_ho_so` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `lichhen`
 --
 ALTER TABLE `lichhen`
-  MODIFY `ma_lich_hen` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `ma_lich_hen` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `lichkham`
 --
 ALTER TABLE `lichkham`
-  MODIFY `ma_lich_kham` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `ma_lich_kham` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `phieukham`
