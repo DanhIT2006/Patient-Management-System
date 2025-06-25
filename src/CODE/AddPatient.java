@@ -265,19 +265,17 @@ public class AddPatient extends JFrame {
             return;
         }
 
-        // Validate phone number (e.g., 10-11 digits)
         if (!sdt.matches("\\d{10,11}")) {
             JOptionPane.showMessageDialog(this, "Số điện thoại phải có 10-11 chữ số!");
             return;
         }
 
-        // Validate email
         if (!isValidEmail(email)) {
             JOptionPane.showMessageDialog(this, "Email không hợp lệ!");
             return;
         }
 
-        // Validate password (minimum length)
+
         if (matKhau.length() < 6) {
             JOptionPane.showMessageDialog(this, "Mật khẩu phải có ít nhất 6 ký tự!");
             return;

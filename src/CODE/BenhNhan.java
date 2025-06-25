@@ -23,7 +23,7 @@ public class BenhNhan extends JFrame {
     private boolean isLoggedIn = false;
 
     private JLabel lblHoTen, lblGioiTinh, lblNgaySinh, lblSDT, lblDiaChi,lblCCCD,lblMaBenhNhan,lblNgayVaoVien,lblNgayRaVien;
-    private JLabel lblLyDoVaoVien, lblTomTatBenhLy,lblTienSuBenh,lblKetQuaXetNghiem,lblPhuongPhapDieuTri,lblNoiKhoa,lblPhauThuat,lblTinhTrangRaVien;
+    private JLabel lblLyDoVaoVien, lblTomTatBenhLy,lblTienSuBenh,lblKetQuaXetNghiem,lblNoiKhoa,lblPhauThuat,lblTinhTrangRaVien;
 
     public BenhNhan(boolean isLoggedIn) {
         this.isLoggedIn = isLoggedIn;
@@ -526,7 +526,6 @@ public class BenhNhan extends JFrame {
         lblTomTatBenhLy = new JLabel("Tóm tắt quá trình bệnh lý và diễn biến lâm sàng: ");
         lblTienSuBenh = new JLabel("Tiền sử bệnh: ");
         lblKetQuaXetNghiem = new JLabel("Tóm tắt kết quả xét nghiệm, cận lâm sàng: ");
-        lblPhuongPhapDieuTri = new JLabel("Phương pháp điều trị: ");
         lblNoiKhoa = new JLabel("Nội khoa: ");
         lblPhauThuat = new JLabel("Phẫu thuật, thủ thuật: ");
         lblTinhTrangRaVien = new JLabel("Tình trạng ra viện: ");
@@ -535,7 +534,6 @@ public class BenhNhan extends JFrame {
         lblTomTatBenhLy.setFont(labelFont);
         lblTienSuBenh.setFont(labelFont);
         lblKetQuaXetNghiem.setFont(labelFont);
-        lblPhuongPhapDieuTri.setFont(labelFont);
         lblNoiKhoa.setFont(labelFont);
         lblPhauThuat.setFont(labelFont);
         lblTinhTrangRaVien.setFont(labelFont);
@@ -545,7 +543,6 @@ public class BenhNhan extends JFrame {
         gbcTreatment.gridy = 1; treatmentInfoPanel.add(lblTomTatBenhLy, gbcTreatment);
         gbcTreatment.gridy = 2; treatmentInfoPanel.add(lblTienSuBenh, gbcTreatment);
         gbcTreatment.gridy = 3; treatmentInfoPanel.add(lblKetQuaXetNghiem, gbcTreatment);
-        gbcTreatment.gridy = 4; treatmentInfoPanel.add(lblPhuongPhapDieuTri, gbcTreatment);
         gbcTreatment.gridy = 5; treatmentInfoPanel.add(lblNoiKhoa, gbcTreatment);
         gbcTreatment.gridy = 6; treatmentInfoPanel.add(lblPhauThuat, gbcTreatment);
         gbcTreatment.gridy = 7; treatmentInfoPanel.add(lblTinhTrangRaVien, gbcTreatment);
@@ -997,9 +994,6 @@ public class BenhNhan extends JFrame {
             xuatthongtin.setText(lblKetQuaXetNghiem.getText().replace("Tóm tắt kết quả xét nghiệm, cận lâm sàng: ", ""));
             xuatthongtin.addBreak();
 
-            xuatthongtin.setBold(true);
-            xuatthongtin.setText("Phương pháp điều trị: ");
-            xuatthongtin.addBreak();
 
             xuatthongtin.setBold(true);
             xuatthongtin.setText("Nội khoa: ");
